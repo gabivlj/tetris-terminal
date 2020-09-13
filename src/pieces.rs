@@ -18,17 +18,17 @@ const BLOCK_ROTATIONS: Cells = [
 
 const STICK_ROTATIONS: Cells = [
     // Vertical
-    [[E, F, E, E], [E, F, E, E], [E, F, E, E], [E, F, E, E]],
+    [[F, E, E, E], [F, E, E, E], [F, E, E, E], [F, E, E, E]],
     // Horizontal
     [[E, E, E, E], [E, E, E, E], [F, F, F, F], [E, E, E, E]],
     // Vertical (REVERSED)
-    [[E, F, E, E], [E, F, E, E], [E, F, E, E], [E, F, E, E]],
+    [[F, E, E, E], [F, E, E, E], [F, E, E, E], [F, E, E, E]],
     // Horizontal (REVERSED)
     [[E, E, E, E], [E, E, E, E], [F, F, F, F], [E, E, E, E]],
 ];
 
 pub const BLOCK_PIECE: Piece = ((0, 0), 0, BLOCK_ROTATIONS, 2, 2);
-pub const STICK_PIECE: Piece = ((0, 0), 0, STICK_ROTATIONS, 1, 4);
+pub const STICK_PIECE: Piece = ((0, 0), 0, STICK_ROTATIONS, 0, 4);
 
 pub enum Move {
     LEFT,

@@ -51,7 +51,35 @@ pub mod game {
             }
         }
 
-        // !! at the moment it only moves to the right!!!
+        fn interchange(&mut self, since_this_row: usize) {
+            for col in 0..self.buffer[0].len() {
+                let mut write_index = since_this_row;
+                for row in (0..since_this_row).rev() {
+                    self.buffer[write_index][col] = self.buffer[row][col];
+                    write_index -= 1;
+                }
+            }
+        }
+
+        /// Returns how many rows have been deleted
+        fn delete_rows(&mut self) -> usize {
+            let mut count = 0;
+            for row in 0..self.buffer.len() {
+                let mut delete = true;
+                for col in 0..self.buffer[0].len() {
+                    if self.buffer[row][col] == pieces::EMPTY_CELL {
+                        delete = false;
+                        break;
+                    }
+                }
+                if delete {
+                    count += 1;
+                    self.interchange(row);
+                }
+            }
+            count
+        }
+
         fn move_piece(&mut self, piece_move: Move) {
             // Clear the piece
             self.render_piece(pieces::EMPTY_CELL);
@@ -157,7 +185,8 @@ pub mod game {
                         return Err(());
                     }
                     Key::Char(' ') => {
-                        self.current_piece = pieces::BLOCK_PIECE;
+                        self.delete_rows();
+                        self.current_piece = pieces::STICK_PIECE;
                         self.render_piece(pieces::FILLED_CELL);
                     }
                     Key::Char('q') | Key::Char('Q') => self.move_piece(Move::ROTATION),
