@@ -64,10 +64,31 @@ pub mod game {
             y = y.min((self.buffer.len() - *h) as isize).max(0);
             (self.current_piece.0).0 = x;
             (self.current_piece.0).1 = y;
+            if self.reverse_move() {
+                match piece_move {
+                    Move::LEFT => x += 1,
+                    Move::RIGHT => x -= 1,
+                    Move::DOWN => y -= 1,
+                }
+                (self.current_piece.0).0 = x;
+                (self.current_piece.0).1 = y;
+            }
             self.render_piece(pieces::FILLED_CELL);
         }
 
-        fn reverse_move() -> bool {
+        fn reverse_move(&self) -> bool {
+            let ((x, y), rot, piece_buffers, _, _) = &self.current_piece;
+            let piece_buffer = &piece_buffers[*rot];
+            for row in 0..piece_buffer.len() {
+                for col in 0..piece_buffer[0].len() {
+                    if piece_buffer[row][col] == pieces::EMPTY_CELL {
+                        continue;
+                    }
+                    if self.buffer[*y as usize + row][*x as usize + col] == pieces::FILLED_CELL {
+                        return true;
+                    }
+                }
+            }
             false
         }
 
@@ -121,6 +142,10 @@ pub mod game {
                     Key::Char('q') => {
                         write!(self.stdout, "{}", termion::cursor::Show).unwrap();
                         return Err(());
+                    }
+                    Key::Char(' ') => {
+                        self.current_piece = pieces::BLOCK_PIECE;
+                        self.render_piece(pieces::FILLED_CELL);
                     }
                     Key::Left => self.move_piece(Move::LEFT),
                     Key::Right => {
