@@ -1,6 +1,7 @@
 pub mod game {
     use crate::pieces;
     use crate::pieces::Move;
+    use crate::utils::{clamp_over, out_of_bounds};
     use std::io::{self, Read};
     use std::io::{stdin, stdout, Stdin, Stdout, Write};
     use std::sync::{Arc, Mutex};
@@ -29,7 +30,7 @@ pub mod game {
                 inputs: Arc::default(),
                 buffer: [[pieces::EMPTY_CELL; 6]; 12],
                 changed_buffer: true,
-                current_piece: pieces::BLOCK_PIECE,
+                current_piece: pieces::STICK_PIECE,
             }
         }
 
@@ -41,7 +42,7 @@ pub mod game {
                         let mut l = ref_inputs.lock().unwrap();
                         l.push(c);
                         drop(l);
-                        if let Key::Char('q') = c {
+                        if let Key::Esc = c {
                             return;
                         }
                     }
@@ -54,24 +55,32 @@ pub mod game {
         fn move_piece(&mut self, piece_move: Move) {
             // Clear the piece
             self.render_piece(pieces::EMPTY_CELL);
-            let ((mut x, mut y), _, _, w, h) = &mut self.current_piece;
+            let ((mut x, mut y), mut rot, _, w, h) = &mut self.current_piece;
             match piece_move {
                 Move::LEFT => x -= 1,
                 Move::RIGHT => x += 1,
                 Move::DOWN => y += 1,
+                Move::ROTATION => rot += 1,
             }
-            x = x.min((self.buffer[0].len() - *w) as isize).max(0);
-            y = y.min((self.buffer.len() - *h) as isize).max(0);
+            let width = if rot % 2 == 0 { *w } else { *h };
+            let height = if rot % 2 == 0 { *h } else { *w };
+            x = x.min((self.buffer[0].len() - width) as isize).max(0);
+            y = y.min((self.buffer.len() - height) as isize).max(0);
+            rot = clamp_over(rot, 3, 0);
             (self.current_piece.0).0 = x;
             (self.current_piece.0).1 = y;
+            self.current_piece.1 = rot;
             if self.reverse_move() {
                 match piece_move {
                     Move::LEFT => x += 1,
                     Move::RIGHT => x -= 1,
                     Move::DOWN => y -= 1,
+                    Move::ROTATION => rot -= 1,
                 }
                 (self.current_piece.0).0 = x;
                 (self.current_piece.0).1 = y;
+                rot = clamp_over(rot, 3, 0);
+                self.current_piece.1 = rot;
             }
             self.render_piece(pieces::FILLED_CELL);
         }
@@ -84,7 +93,11 @@ pub mod game {
                     if piece_buffer[row][col] == pieces::EMPTY_CELL {
                         continue;
                     }
-                    if self.buffer[*y as usize + row][*x as usize + col] == pieces::FILLED_CELL {
+                    let (x, y) = (*x + col as isize, *y + row as isize);
+                    if out_of_bounds(x, &self.buffer[0])
+                        || out_of_bounds(y, &self.buffer)
+                        || self.buffer[y as usize][x as usize] == pieces::FILLED_CELL
+                    {
                         return true;
                     }
                 }
@@ -139,7 +152,7 @@ pub mod game {
                 .unwrap();
 
                 match c {
-                    Key::Char('q') => {
+                    Key::Esc => {
                         write!(self.stdout, "{}", termion::cursor::Show).unwrap();
                         return Err(());
                     }
@@ -147,10 +160,9 @@ pub mod game {
                         self.current_piece = pieces::BLOCK_PIECE;
                         self.render_piece(pieces::FILLED_CELL);
                     }
+                    Key::Char('q') | Key::Char('Q') => self.move_piece(Move::ROTATION),
                     Key::Left => self.move_piece(Move::LEFT),
-                    Key::Right => {
-                        self.move_piece(Move::RIGHT);
-                    }
+                    Key::Right => self.move_piece(Move::RIGHT),
                     Key::Down => self.move_piece(Move::DOWN),
                     _ => {}
                 }
