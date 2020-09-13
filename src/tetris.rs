@@ -83,17 +83,14 @@ pub mod game {
         fn move_piece(&mut self, piece_move: Move) {
             // Clear the piece
             self.render_piece(pieces::EMPTY_CELL);
-            let ((mut x, mut y), mut rot, _, w, h) = &mut self.current_piece;
+            let ((mut x, mut y), mut rot, _) = &mut self.current_piece;
             match piece_move {
                 Move::LEFT => x -= 1,
                 Move::RIGHT => x += 1,
                 Move::DOWN => y += 1,
                 Move::ROTATION => rot += 1,
             }
-            let width = if rot % 2 == 0 { *w } else { *h };
-            let height = if rot % 2 == 0 { *h } else { *w };
-            x = x.min((self.buffer[0].len() - width) as isize).max(0);
-            y = y.min((self.buffer.len() - height) as isize).max(0);
+            // y = y.min((self.buffer.len() - height) as isize).max(0);
             rot = clamp_over(rot, 3, 0);
             (self.current_piece.0).0 = x;
             (self.current_piece.0).1 = y;
@@ -114,14 +111,14 @@ pub mod game {
         }
 
         fn reverse_move(&self) -> bool {
-            let ((x, y), rot, piece_buffers, _, _) = &self.current_piece;
-            let piece_buffer = &piece_buffers[*rot];
+            let ((x, y), rot, piece_buffers) = &self.current_piece;
+            let piece_buffer = &piece_buffers[*rot as usize];
             for row in 0..piece_buffer.len() {
                 for col in 0..piece_buffer[0].len() {
                     if piece_buffer[row][col] == pieces::EMPTY_CELL {
                         continue;
                     }
-                    let (x, y) = (*x + col as isize, *y + row as isize);
+                    let (y, x) = ((*y + row as isize), (*x + col as isize));
                     if out_of_bounds(x, &self.buffer[0])
                         || out_of_bounds(y, &self.buffer)
                         || self.buffer[y as usize][x as usize] == pieces::FILLED_CELL
@@ -134,14 +131,15 @@ pub mod game {
         }
 
         fn render_piece(&mut self, cell_type: char) {
-            let ((x, y), rot, piece_buffers, _, _) = &mut self.current_piece;
-            let piece_buffer = &mut piece_buffers[*rot];
+            let ((x, y), rot, piece_buffers) = &self.current_piece;
+            let piece_buffer = &piece_buffers[*rot as usize];
             for row in 0..piece_buffer.len() {
                 for col in 0..piece_buffer[0].len() {
                     if piece_buffer[row][col] == pieces::EMPTY_CELL {
                         continue;
                     }
-                    self.buffer[*y as usize + row][*x as usize + col] = cell_type;
+                    self.buffer[(*y + row as isize) as usize][(*x + col as isize) as usize] =
+                        cell_type;
                 }
             }
             self.changed_buffer = true;
@@ -186,7 +184,7 @@ pub mod game {
                     }
                     Key::Char(' ') => {
                         self.delete_rows();
-                        self.current_piece = pieces::STICK_PIECE;
+                        self.current_piece = pieces::REVERSE_L_PIECE;
                         self.render_piece(pieces::FILLED_CELL);
                     }
                     Key::Char('q') | Key::Char('Q') => self.move_piece(Move::ROTATION),

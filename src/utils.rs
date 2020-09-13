@@ -1,4 +1,4 @@
-pub fn clamp_over(n: usize, max: usize, min: usize) -> usize {
+pub fn clamp_over(n: isize, max: isize, min: isize) -> isize {
     if n > max {
         return min;
     }
