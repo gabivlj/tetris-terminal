@@ -17,3 +17,9 @@ const BLOCK_ROTATIONS: Cells = [
 ];
 
 pub const BLOCK_PIECE: Piece = ((0, 0), 0, BLOCK_ROTATIONS);
+
+pub enum Move {
+    LEFT,
+    RIGHT,
+    DOWN,
+}

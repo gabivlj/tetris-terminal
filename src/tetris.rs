@@ -1,5 +1,6 @@
 pub mod game {
     use crate::pieces;
+    use crate::pieces::Move;
     use std::io::{self, Read};
     use std::io::{stdin, stdout, Stdin, Stdout, Write};
     use std::sync::{Arc, Mutex};
@@ -50,27 +51,32 @@ pub mod game {
         }
 
         // !! at the moment it only moves to the right!!!
-        fn move_piece(&mut self) {
-            let ((mut x, mut y), rot, piece_buffers) = self.current_piece;
-            let piece_buffer = piece_buffers[rot];
+        fn move_piece(&mut self, piece_move: Move) {
             // Clear the piece
             self.render_piece(pieces::EMPTY_CELL);
-            // todo: MAKE IT VIA INPUT
-            x += 1;
-            x = x.min(piece_buffer[0].len());
+            let ((mut x, mut y), rot, piece_buffers) = &mut self.current_piece;
+            let piece_buffer = &mut piece_buffers[*rot];
+            match piece_move {
+                Move::LEFT => x -= 1,
+                Move::RIGHT => x += 1,
+                Move::DOWN => y += 1,
+            }
+            x = x.min(self.buffer[0].len() - piece_buffer[0].len()).max(0);
+            y = y.min(self.buffer.len() - piece_buffer.len()).max(0);
             (self.current_piece.0).0 = x;
+            (self.current_piece.0).1 = y;
             self.render_piece(pieces::FILLED_CELL);
         }
 
         fn render_piece(&mut self, cell_type: char) {
-            let ((x, y), rot, piece_buffers) = self.current_piece;
-            let piece_buffer = piece_buffers[rot];
+            let ((x, y), rot, piece_buffers) = &mut self.current_piece;
+            let piece_buffer = &mut piece_buffers[*rot];
             for row in 0..piece_buffer.len() {
                 for col in 0..piece_buffer[0].len() {
                     if piece_buffer[row][col] == pieces::EMPTY_CELL {
                         continue;
                     }
-                    self.buffer[y + row][x + col] = cell_type;
+                    self.buffer[*y + row][*x + col] = cell_type;
                 }
             }
             self.changed_buffer = true;
@@ -113,11 +119,11 @@ pub mod game {
                         write!(self.stdout, "{}", termion::cursor::Show).unwrap();
                         return Err(());
                     }
-                    Key::Left => println!("←"),
+                    Key::Left => self.move_piece(Move::LEFT),
                     Key::Right => {
-                        self.move_piece();
+                        self.move_piece(Move::RIGHT);
                     }
-                    Key::Down => println!("↓"),
+                    Key::Down => self.move_piece(Move::DOWN),
                     _ => {}
                 }
             }
