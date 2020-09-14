@@ -41,6 +41,14 @@ const REVERSE_L_ROTATIONS: Cells = [
 pub const BLOCK_PIECE: Piece = ((0, 0), 0, BLOCK_ROTATIONS);
 pub const STICK_PIECE: Piece = ((0, 0), 0, STICK_ROTATIONS);
 pub const REVERSE_L_PIECE: Piece = ((0, 0), 0, REVERSE_L_ROTATIONS);
+pub const EVERY_PIECE: [Piece; 3] = [BLOCK_PIECE, STICK_PIECE, REVERSE_L_PIECE];
+
+use rand::Rng;
+
+pub fn get_piece() -> Piece {
+    let mut rng = rand::thread_rng();
+    EVERY_PIECE[rng.gen_range(0, EVERY_PIECE.len())]
+}
 
 pub enum Move {
     LEFT,

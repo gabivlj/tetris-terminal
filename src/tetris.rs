@@ -80,7 +80,7 @@ pub mod game {
             count
         }
 
-        fn move_piece(&mut self, piece_move: Move) {
+        fn move_piece(&mut self, piece_move: Move) -> bool {
             // Clear the piece
             self.render_piece(pieces::EMPTY_CELL);
             let ((mut x, mut y), mut rot, _) = &mut self.current_piece;
@@ -95,7 +95,8 @@ pub mod game {
             (self.current_piece.0).0 = x;
             (self.current_piece.0).1 = y;
             self.current_piece.1 = rot;
-            if self.reverse_move() {
+            let do_reverse = self.reverse_move();
+            if do_reverse {
                 match piece_move {
                     Move::LEFT => x += 1,
                     Move::RIGHT => x -= 1,
@@ -108,6 +109,7 @@ pub mod game {
                 self.current_piece.1 = rot;
             }
             self.render_piece(pieces::FILLED_CELL);
+            !do_reverse
         }
 
         fn reverse_move(&self) -> bool {
@@ -128,6 +130,10 @@ pub mod game {
                 }
             }
             false
+        }
+
+        fn go_to_low(&mut self) {
+            while self.move_piece(Move::DOWN) {}
         }
 
         fn render_piece(&mut self, cell_type: char) {
@@ -164,11 +170,11 @@ pub mod game {
             if self.changed_buffer {
                 self.render_buffer().unwrap();
             }
-            std::thread::sleep(std::time::Duration::from_millis(100));
+            std::thread::sleep(std::time::Duration::from_millis(1));
             let mut l = self.inputs.lock().unwrap();
             let s: Vec<Key> = l.drain(..).collect();
             drop(l);
-            for c in &s {
+            for c in s {
                 write!(
                     self.stdout,
                     "{}{}",
@@ -183,14 +189,23 @@ pub mod game {
                         return Err(());
                     }
                     Key::Char(' ') => {
+                        self.go_to_low();
                         self.delete_rows();
-                        self.current_piece = pieces::REVERSE_L_PIECE;
+                        self.current_piece = pieces::get_piece();
                         self.render_piece(pieces::FILLED_CELL);
                     }
-                    Key::Char('q') | Key::Char('Q') => self.move_piece(Move::ROTATION),
-                    Key::Left => self.move_piece(Move::LEFT),
-                    Key::Right => self.move_piece(Move::RIGHT),
-                    Key::Down => self.move_piece(Move::DOWN),
+                    Key::Char('q') | Key::Char('Q') => {
+                        self.move_piece(Move::ROTATION);
+                    }
+                    Key::Left => {
+                        self.move_piece(Move::LEFT);
+                    }
+                    Key::Right => {
+                        self.move_piece(Move::RIGHT);
+                    }
+                    Key::Down => {
+                        self.move_piece(Move::DOWN);
+                    }
                     _ => {}
                 }
             }
