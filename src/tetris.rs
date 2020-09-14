@@ -80,6 +80,7 @@ pub mod game {
             count
         }
 
+        /// Returns if the move has been succesful
         fn move_piece(&mut self, piece_move: Move) -> bool {
             // Clear the piece
             self.render_piece(pieces::EMPTY_CELL);
@@ -88,7 +89,8 @@ pub mod game {
                 Move::LEFT => x -= 1,
                 Move::RIGHT => x += 1,
                 Move::DOWN => y += 1,
-                Move::ROTATION => rot += 1,
+                Move::RIGHT_ROTATION => rot += 1,
+                Move::LEFT_ROTATION => rot -= 1,
             }
             // y = y.min((self.buffer.len() - height) as isize).max(0);
             rot = clamp_over(rot, 3, 0);
@@ -101,7 +103,8 @@ pub mod game {
                     Move::LEFT => x += 1,
                     Move::RIGHT => x -= 1,
                     Move::DOWN => y -= 1,
-                    Move::ROTATION => rot -= 1,
+                    Move::RIGHT_ROTATION => rot -= 1,
+                    Move::LEFT_ROTATION => rot += 1,
                 }
                 (self.current_piece.0).0 = x;
                 (self.current_piece.0).1 = y;
@@ -195,7 +198,10 @@ pub mod game {
                         self.render_piece(pieces::FILLED_CELL);
                     }
                     Key::Char('q') | Key::Char('Q') => {
-                        self.move_piece(Move::ROTATION);
+                        self.move_piece(Move::LEFT_ROTATION);
+                    }
+                    Key::Char('e') | Key::Char('E') => {
+                        self.move_piece(Move::RIGHT_ROTATION);
                     }
                     Key::Left => {
                         self.move_piece(Move::LEFT);

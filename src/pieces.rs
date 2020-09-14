@@ -1,7 +1,7 @@
-pub const EMPTY_CELL: char = '▢';
+pub const EMPTY_CELL: char = '□';
 pub const FILLED_CELL: char = '▨';
-pub const E: char = '▢';
-pub const F: char = '▨';
+pub const E: char = EMPTY_CELL;
+pub const F: char = FILLED_CELL;
 
 pub type Position = (isize, isize);
 pub type CellStruct = [[char; 4]; 4];
@@ -54,5 +54,6 @@ pub enum Move {
     LEFT,
     RIGHT,
     DOWN,
-    ROTATION,
+    RIGHT_ROTATION,
+    LEFT_ROTATION,
 }
