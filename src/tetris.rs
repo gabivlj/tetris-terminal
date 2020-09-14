@@ -88,11 +88,11 @@ pub mod game {
             self.render_piece(pieces::EMPTY_CELL);
             let ((mut x, mut y), mut rot, _) = &mut self.current_piece;
             match piece_move {
-                Move::LEFT => x -= 1,
-                Move::RIGHT => x += 1,
-                Move::DOWN => y += 1,
-                Move::RIGHT_ROTATION => rot += 1,
-                Move::LEFT_ROTATION => rot -= 1,
+                Move::Left => x -= 1,
+                Move::Right => x += 1,
+                Move::Down => y += 1,
+                Move::RightRotation => rot += 1,
+                Move::LeftRotation => rot -= 1,
             }
             // y = y.min((self.buffer.len() - height) as isize).max(0);
             rot = clamp_over(rot, 3, 0);
@@ -102,11 +102,11 @@ pub mod game {
             let do_reverse = self.reverse_move();
             if do_reverse {
                 match piece_move {
-                    Move::LEFT => x += 1,
-                    Move::RIGHT => x -= 1,
-                    Move::DOWN => y -= 1,
-                    Move::RIGHT_ROTATION => rot -= 1,
-                    Move::LEFT_ROTATION => rot += 1,
+                    Move::Left => x += 1,
+                    Move::Right => x -= 1,
+                    Move::Down => y -= 1,
+                    Move::RightRotation => rot -= 1,
+                    Move::LeftRotation => rot += 1,
                 }
                 (self.current_piece.0).0 = x;
                 (self.current_piece.0).1 = y;
@@ -138,7 +138,7 @@ pub mod game {
         }
 
         fn go_to_low(&mut self) {
-            while self.move_piece(Move::DOWN) {}
+            while self.move_piece(Move::Down) {}
         }
 
         fn render_piece(&mut self, cell_type: char) {
@@ -201,19 +201,19 @@ pub mod game {
                         self.render_piece(pieces::FILLED_CELL);
                     }
                     Key::Char('q') | Key::Char('Q') => {
-                        self.move_piece(Move::LEFT_ROTATION);
+                        self.move_piece(Move::LeftRotation);
                     }
                     Key::Char('e') | Key::Char('E') => {
-                        self.move_piece(Move::RIGHT_ROTATION);
+                        self.move_piece(Move::RightRotation);
                     }
                     Key::Left => {
-                        self.move_piece(Move::LEFT);
+                        self.move_piece(Move::Left);
                     }
                     Key::Right => {
-                        self.move_piece(Move::RIGHT);
+                        self.move_piece(Move::Right);
                     }
                     Key::Down => {
-                        self.move_piece(Move::DOWN);
+                        self.move_piece(Move::Down);
                     }
                     _ => {}
                 }

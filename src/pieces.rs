@@ -51,9 +51,9 @@ pub fn get_piece() -> Piece {
 }
 
 pub enum Move {
-    LEFT,
-    RIGHT,
-    DOWN,
-    RIGHT_ROTATION,
-    LEFT_ROTATION,
+    Left,
+    Right,
+    Down,
+    RightRotation,
+    LeftRotation,
 }
