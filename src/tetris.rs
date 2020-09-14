@@ -21,6 +21,7 @@ pub mod game {
         current_piece: pieces::Piece,
         inputs: Arc<Mutex<Vec<Key>>>,
         changed_buffer: bool,
+        score: usize,
     }
 
     impl Tetris {
@@ -31,6 +32,7 @@ pub mod game {
                 buffer: [[pieces::EMPTY_CELL; 6]; 12],
                 changed_buffer: true,
                 current_piece: pieces::STICK_PIECE,
+                score: 0,
             }
         }
 
@@ -163,7 +165,7 @@ pub mod game {
                     write!(self.stdout, "{}", character);
                 }
             }
-            write!(self.stdout, "\n{:?}", self.current_piece);
+            write!(self.stdout, "\nScore: {}", self.score);
             self.changed_buffer = false;
             self.stdout.flush().unwrap();
             Ok(())
@@ -193,7 +195,8 @@ pub mod game {
                     }
                     Key::Char(' ') => {
                         self.go_to_low();
-                        self.delete_rows();
+                        let how_many_rows = self.delete_rows();
+                        self.score += (how_many_rows * how_many_rows);
                         self.current_piece = pieces::get_piece();
                         self.render_piece(pieces::FILLED_CELL);
                     }
@@ -238,9 +241,11 @@ pub mod game {
             c.join().unwrap();
             write!(
                 self.stdout,
-                "{}{}",
+                "{}{}Goodbye! Your score was: {}{}",
                 termion::cursor::Show,
                 termion::clear::All,
+                self.score,
+                termion::cursor::Goto(1, 2),
             )
             .unwrap();
             self.stdout.flush().unwrap();
